@@ -1,15 +1,7 @@
-# This workflow will initiate a Veracode Static Analysis Pipeline scan, return a results.json and convert to SARIF for upload as a code scanning alert
+name: Pipelinescanner Verademo Maven Build
 
-name: Veracode Static Analysis Pipeline Scan
-
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
-  workflow_dispatch:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch: 
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -20,21 +12,24 @@ jobs:
     steps:
     - uses: actions/checkout@v2
         
-  # zip the project and move it to a staging directory
-    - name: Zip Project
-      run: zip -R verademo.zip '*.py' '*.js' '*.php' '*.ts'
-      env:
-        build-name: project.zip
+  # build the application
+    - uses: actions/setup-java@v1 # Make java accessible on path so the uploadandscan action can run.
+      with: 
+        java-version: '8'
+
+    - name: Build with Maven
+      run: mvn -B package --file app/pom.xml
+
       
     - name: Archive package
       uses: actions/upload-artifact@v2
       with:
-        name: verademo
-        path: verademo.zip
+        name: CodePackage
+        path: '**/*.war'
   
   pipeline-scan:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: container
     container: 
       image: veracode/pipeline-scan:latest
       options: --user root # our normal luser doesn't have privs to write to github directories
@@ -43,37 +38,18 @@ jobs:
     - name: Retrieve artifact
       uses: actions/download-artifact@v2
       with:
-        name: Verademo
+        name: CodePackage
+        path: /github/home
     
     #  Submit  project to pipeline scan
     - name: Pipeline Scan
       run: |
-        java -jar /opt/veracode/pipeline-scan.jar --veracode_api_id="${{secrets.VERACODE_API_ID}}" --veracode_api_key="${{secrets.VERACODE_API_KEY}}" --fail_on_severity="Very High, High" --file="project.zip" --app_id="${{secrets.VERACODE_APP_ID}}" --json_output_file="results.json"
-      continue-on-error: true
-
+        ls
+        cd /github/home/app/target
+        java -jar /opt/veracode/pipeline-scan.jar --veracode_api_id="${{secrets.VERACODE_API_ID}}" --veracode_api_key="${{secrets.VERACODE_API_KEY}}" --fail_on_severity="Very High, High" --file="verademo.war" --json_output_file="results.json"
+        echo $?
     - uses: actions/upload-artifact@v2
       with:
         name: ScanResults
-        path: results.json
-
-  # Convert pipeline scan output to SARIF format  
-  process-results:
-    needs: pipeline-scan
-    runs-on: ubuntu-latest
-    steps:
-
-    - name: Retrieve results
-      uses: actions/download-artifact@v2
-      with:
-        name: ScanResults
-
-    - name: convert
-      uses: veracode/veracode-pipeline-scan-results-to-sarif@master
-      with:
-        pipeline-results-json: results.json
-        output-results-sarif: veracode-results.sarif
-        finding-rule-level: "4:3:0"
-    - uses: github/codeql-action/upload-sarif@v1
-      with:
-    # Path to SARIF file relative to the root of the repository
-        sarif_file: veracode-results.sarif     
+        path: /github/home/app/target/results.json
+        if: always()
