@@ -46,6 +46,4 @@ jobs:
           vid: '${{ secrets.VERACODE_API_ID }}'
           vkey: '${{ secrets.VERACODE_API_KEY }}'
           createprofile: true
-          version: '${{ github.build_number }}'
- 
-          
+          version: $(github.build_number)
