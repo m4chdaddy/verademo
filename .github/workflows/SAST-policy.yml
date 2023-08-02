@@ -6,9 +6,7 @@ name: Veracode Policy Upload & Scan
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -43,8 +41,11 @@ jobs:
 
       - uses: veracode/veracode-uploadandscan-action@master # Run the uploadandscan action. Inputs are described above.
         with:
-          appname: '${{ secrets.VERACODE_APP_NAME }}'
+          appname: VeraDemo-Qantas
           filepath: app/target/verademo.war
           vid: '${{ secrets.VERACODE_API_ID }}'
           vkey: '${{ secrets.VERACODE_API_KEY }}'
-          createprofile: false
+          createprofile: true
+          version: $(CI_BUILD_NUMBER)
+          action: uploadandscan
+          
