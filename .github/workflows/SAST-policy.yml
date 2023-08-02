@@ -46,6 +46,6 @@ jobs:
           vid: '${{ secrets.VERACODE_API_ID }}'
           vkey: '${{ secrets.VERACODE_API_KEY }}'
           createprofile: true
-          version: $(CI_BUILD_NUMBER)
-          action: uploadandscan
+          version: '${{ CI_BUILD_NUMBER }}'
+          action: 'uploadandscan'
           
