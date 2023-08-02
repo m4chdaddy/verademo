@@ -29,13 +29,4 @@ jobs:
           SRCCLR_API_TOKEN: ${{ secrets.SRCCLR_API_TOKEN }}
         run: |
          curl -sSL https://download.sourceclear.com/ci.sh | sh -s ./app scan --allow-dirty --update-advisor
-      - name: GHACtion
-        uses: veracode/veracode-sca@v1.0.8
-        with:
-            github_token: ${{ secrets.GITHUB_TOKEN }}
-            quick: false
-            debug: false
-            create-issues: true 
-            fail-on-cvss: 1
-            #min-cvss-for-issue: 1
-  #       path: '**/*.war'
+     
