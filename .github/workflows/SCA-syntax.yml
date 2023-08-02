@@ -1,8 +1,7 @@
 name: Veracode SCA Agent Demo
-on:
-  pull_request:
-    branches: [ feature, main ]
 
+on:
+  push:
 jobs: 
   SCA: 
     name: Software Composition Analysis
