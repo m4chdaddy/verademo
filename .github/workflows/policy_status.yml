@@ -1,0 +1,31 @@
+name: Policy Status Script
+
+on: workflow_dispatch
+env:
+  API_ID: ${{ secrets.VERACODE_API_ID }}
+  API_KEY: ${{ secrets.VERACODE_API_KEY }}
+  APP_NAME: VeraGHA
+
+jobs:
+
+  get_ploicy_status:
+    runs-on: ubuntu-latest
+    container:
+      image: veracode/api-signing:latest
+    steps: 
+      - name: get policy status
+        run: |
+          cd /tmp
+          export VERACODE_API_KEY_ID=${{ env.API_ID }}
+          export VERACODE_API_KEY_SECRET=${{ env.API_KEY }}
+          GUID=$(http --auth-type veracode_hmac GET "https://api.veracode.com/appsec/v1/applications/?name=${{ env.APP_NAME }}" | jq -r '._embedded.applications[0].guid')
+          echo GUID: ${GUID}
+          response=$(http --auth-type veracode_hmac GET "https://api.veracode.com/appsec/v1/applications/$GUID")
+          policy_status=$(echo "$response" | jq -r '.profile.policies[0].policy_compliance_status')
+          echo Policy_Status: ${policy_status}
+          if [ "$policy_status" == "DID_NOT_PASS" ]; then
+            exit 1
+          fi
+    
+
+  
