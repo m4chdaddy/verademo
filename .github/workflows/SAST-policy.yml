@@ -41,11 +41,11 @@ jobs:
 
       - uses: veracode/veracode-uploadandscan-action@master # Run the uploadandscan action. Inputs are described above.
         with:
-          appname: VeraDemo-Qantas
-          filepath: app/target/verademo.war
+          appname: 'VeraDemo-Qantas'
+          filepath: 'app/target/verademo.war'
           vid: '${{ secrets.VERACODE_API_ID }}'
           vkey: '${{ secrets.VERACODE_API_KEY }}'
           createprofile: true
-          version: '${{ CI_BUILD_NUMBER }}'
-          action: 'uploadandscan'
+          version: '${{ github.build_number }}'
+ 
           
